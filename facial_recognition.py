@@ -1,33 +1,21 @@
 import numpy as np
-import statistics as stats
 import math
+import warnings
+warnings.filterwarnings("ignore")
+import matplotlib.pyplot as plt
+# from keras.utils import to_categorical
+
+# from keras.models import Sequential
+# from keras.layers import Dense, Dropout
+
 
 # initialization for Question 2
 
-class DataPoint(object):
-    def __init__(self, cols):
-        self.emotion = cols['emotion']
-        self.pixels = cols['pixels']
-
-
-# Normalize the images
-def preprocessing(dataset):
-    for i, image in enumerate(dataset):
-        mean = stats.mean(image.pixels)
-        stddev = np.std(image.pixels)
-        adjusted_stddev = max(stddev, 1.0/math.sqrt(2304))
-        print(image.pixels[0])
-        for k, p in enumerate(image.pixels):
-            image.pixels[k] = (p - mean) / adjusted_stddev
-        print(image.pixels[0])
-
-
-    return dataset
-
 def parse_dataset(filename):
     data_file = open(filename, 'r')  # Open File "to read"
-    dataset = []  # List to hold Datapoint objects
-    # emotion_class = {0: 'Angry', 1: 'Disgust', 2: 'Fear', 3: 'Happy', 4: 'Sad', 5: 'Surprise', 6: 'Neutral'}
+    
+    images = []
+    labels = []
 
     for i, image in enumerate(data_file):
         if i == 0:
@@ -36,10 +24,54 @@ def parse_dataset(filename):
         pixel_list = pixelStr.split()
         map_pixel = map(float, pixel_list)
         pixels = list(map_pixel)
-        dataset.append(DataPoint({'emotion': emotion, 'pixels': pixels}))
+        # image_pixels = [pixels[i:i+48] for i in range(0, len(pixels), 48)]
         
-    preprocessing(dataset)
-    print("Number of samples by emotion: Angry - {0} , Disgust - {1} , Fear - {2} , Happy - {3} , Sad - {4} , Surprise - {5} , Neutral - {6}".format(len([i for i in dataset if i.emotion == '0']), len([i for i in dataset if i.emotion == '1']), len([i for i in dataset if i.emotion == '2']), len([i for i in dataset if i.emotion == '3']), len([i for i in dataset if i.emotion == '4']), len([i for i in dataset if i.emotion == '5']), len([i for i in dataset if i.emotion == '6'])))
-    return dataset
+        labels.append(int(emotion)) # integer strings
+        images.append(pixels) # integer list
+    image1D = np.array(images)
+    label1D = np.array(labels)
+    image3D = image1D.reshape(len(labels), 48, 48)
+        
+    # print("Number of samples by emotion: Angry - {0} , Disgust - {1} , Fear - {2} , Happy - {3} , Sad - {4} , Surprise - {5} , Neutral - {6}".format(len([i for i in dataset if i.emotion == '0']), len([i for i in dataset if i.emotion == '1']), len([i for i in dataset if i.emotion == '2']), len([i for i in dataset if i.emotion == '3']), len([i for i in dataset if i.emotion == '4']), len([i for i in dataset if i.emotion == '5']), len([i for i in dataset if i.emotion == '6'])))
+    return image3D, label1D
 
-parse_dataset('Q2_Train_Data.csv')
+train_images, train_labels = parse_dataset('Q2_Train_Data.csv')
+# valid_images, valid_labels = parse_dataset('Q2_Validation_Data.csv')
+# test_set = parse_dataset('Q2_Test_Data.csv')
+
+
+# print("Visualizing 28th image for Anger. ")
+# print("Visualizing 300th image for Disgust. ")
+# print("Visualizing 3rd image for Fear. ")
+# print("Visualizing 8th image for Happy. ")
+# print("Visualizing 20th image for Sad. ")
+# print("Visualizing 16th image for Surprise. ")
+# print("Visualizing 14th image for Neutral. ")
+# _ = plt.imshow(train_images[13])
+# print(type(train_images))
+# print(train_labels)
+# print(train_images[2,:,:])
+# plt.show()
+
+
+# Normalize the images
+def preprocessing(dataset):
+    for image in dataset:
+        mean = np.mean(image)
+        stddev = np.std(image)
+        adjusted_stddev = max(stddev, 1.0/math.sqrt(2304))
+        for p, row in enumerate(image):
+            for q, col in enumerate(row):
+                 image[p][q] = (col - mean) / adjusted_stddev
+
+preprocessing(train_images)
+
+# preprocessing(valid_images)
+# preprocessing(test_images)
+
+# model = Sequential([
+#     Dense(784, activation='relu', input_shape=(28*28,), name="first_hidden_layer"),
+#     Dense(784//2, activation='relu', name="second_hidden_layer"), Dropout(0.25),
+#     Dense(10, activation='softmax'),
+# ])
+
